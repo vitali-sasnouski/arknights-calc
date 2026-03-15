@@ -4,5 +4,8 @@
     "arknights",
     "orundum",
     "shadcn"
+  ],
+  "cSpell.ignorePaths": [
+    ".gitignore"
   ]
 }
