@@ -3,7 +3,13 @@ import { calculate } from './calc'
 import { Button } from '@/components/ui/button'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Table, TableBody, TableCell, TableFooter, TableRow } from '@/components/ui/table'
+import orundumIcon from './assets/orundum.png'
+import hhPermitIcon from './assets/hh_permit.png'
 import './App.css'
+
+function ResourceIcon({ src, alt }) {
+  return <img src={src} alt={alt} className="inline-block h-5 w-5 object-contain" />
+}
 
 function ResultTable({ rows, footer }) {
   return (
@@ -18,10 +24,15 @@ function ResultTable({ rows, footer }) {
         ))}
       </TableBody>
       <TableFooter>
-        {footer.map(({ label, value }) => (
+        {footer.map(({ label, value, icon }) => (
           <TableRow key={label}>
             <TableCell colSpan={2} className="font-semibold">{label}</TableCell>
-            <TableCell className="text-right font-semibold">{value.toLocaleString()}</TableCell>
+            <TableCell className="text-right font-semibold">
+              <span className="inline-flex items-center gap-1.5 justify-end">
+                {icon}
+                {value.toLocaleString()}
+              </span>
+            </TableCell>
           </TableRow>
         ))}
       </TableFooter>
@@ -36,16 +47,16 @@ function OrundumBlock({ orundum, constants: c }) {
     { label: 'Wednesday',    count: orundum.wednesdays,   rate: c.ORUNDUM_WEDNESDAY,   total: orundum.wednesday_total },
     { label: 'Month start',  count: orundum.month_firsts, rate: c.ORUNDUM_MONTH_FIRST, total: orundum.month_first_total },
   ]
+  const icon = <ResourceIcon src={orundumIcon} alt="Orundum" />
   return (
     <Card>
       <CardHeader>
-        <CardTitle>Orundum</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          {icon} Orundum
+        </CardTitle>
       </CardHeader>
       <CardContent>
-        <ResultTable
-          rows={rows}
-          footer={[{ label: 'Total Orundum', value: orundum.grand_total }]}
-        />
+        <ResultTable rows={rows} footer={[{ label: 'Total Orundum', value: orundum.grand_total, icon }]} />
       </CardContent>
     </Card>
   )
@@ -62,17 +73,20 @@ function HhBlock({ orundum, hh, constants: c }) {
       total: hh.from_orundum,
     },
   ]
+  const icon = <ResourceIcon src={hhPermitIcon} alt="HH Permit" />
   return (
     <Card>
       <CardHeader>
-        <CardTitle>HH Permit</CardTitle>
+        <CardTitle className="flex items-center gap-2">
+          {icon} HH Permit
+        </CardTitle>
       </CardHeader>
       <CardContent>
         <ResultTable
           rows={rows}
           footer={[
-            { label: 'HH from period', value: hh.grand_total },
-            { label: 'Total HH Permit', value: hh.total },
+            { label: 'HH from period', value: hh.grand_total, icon },
+            { label: 'Total HH Permit', value: hh.total,       icon },
           ]}
         />
       </CardContent>
