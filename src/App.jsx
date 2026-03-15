@@ -1,70 +1,82 @@
 import { useState } from 'react'
 import { calculate } from './calc'
+import { Button } from '@/components/ui/button'
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Table, TableBody, TableCell, TableFooter, TableRow } from '@/components/ui/table'
 import './App.css'
 
-function ResultRow({ label, count, rate, total }) {
+function ResultTable({ rows, footer }) {
   return (
-    <tr>
-      <td>{label}</td>
-      <td>{count} day(s) × {rate}</td>
-      <td>= {total.toLocaleString()}</td>
-    </tr>
-  )
-}
-
-function TotalRow({ label, value }) {
-  return (
-    <tr>
-      <td colSpan={2}><strong>{label}</strong></td>
-      <td><strong>{value.toLocaleString()}</strong></td>
-    </tr>
+    <Table>
+      <TableBody>
+        {rows.map(({ label, count, rate, total }) => (
+          <TableRow key={label}>
+            <TableCell className="text-muted-foreground">{label}</TableCell>
+            <TableCell className="text-muted-foreground">{count} × {rate}</TableCell>
+            <TableCell className="text-right">{total.toLocaleString()}</TableCell>
+          </TableRow>
+        ))}
+      </TableBody>
+      <TableFooter>
+        {footer.map(({ label, value }) => (
+          <TableRow key={label}>
+            <TableCell colSpan={2} className="font-semibold">{label}</TableCell>
+            <TableCell className="text-right font-semibold">{value.toLocaleString()}</TableCell>
+          </TableRow>
+        ))}
+      </TableFooter>
+    </Table>
   )
 }
 
 function OrundumBlock({ orundum, constants: c }) {
+  const rows = [
+    { label: 'Daily base',   count: orundum.days,         rate: c.ORUNDUM_PER_DAY,     total: orundum.daily_total },
+    { label: 'Monday bonus', count: orundum.mondays,      rate: c.ORUNDUM_MONDAY,      total: orundum.monday_total },
+    { label: 'Wednesday',    count: orundum.wednesdays,   rate: c.ORUNDUM_WEDNESDAY,   total: orundum.wednesday_total },
+    { label: 'Month start',  count: orundum.month_firsts, rate: c.ORUNDUM_MONTH_FIRST, total: orundum.month_first_total },
+  ]
   return (
-    <div>
-      <h2>Orundum</h2>
-      <table>
-        <tbody>
-          <ResultRow label="Daily base"   count={orundum.days}        rate={c.ORUNDUM_PER_DAY}     total={orundum.daily_total} />
-          <ResultRow label="Monday bonus" count={orundum.mondays}     rate={c.ORUNDUM_MONDAY}      total={orundum.monday_total} />
-          <ResultRow label="Wednesday"    count={orundum.wednesdays}  rate={c.ORUNDUM_WEDNESDAY}   total={orundum.wednesday_total} />
-          <ResultRow label="Month start"  count={orundum.month_firsts} rate={c.ORUNDUM_MONTH_FIRST} total={orundum.month_first_total} />
-          <TotalRow label="Total Orundum" value={orundum.grand_total} />
-        </tbody>
-      </table>
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>Orundum</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <ResultTable
+          rows={rows}
+          footer={[{ label: 'Total Orundum', value: orundum.grand_total }]}
+        />
+      </CardContent>
+    </Card>
   )
 }
 
 function HhBlock({ orundum, hh, constants: c }) {
+  const rows = [
+    { label: 'Month start',  count: hh.month_firsts,     rate: c.HH_MONTH_FIRST, total: hh.month_first_total },
+    { label: 'Day 17 bonus', count: hh.day_seventeenths, rate: c.HH_DAY_17,      total: hh.day_17_total },
+    {
+      label: 'Orundum → HH',
+      count: `${orundum.grand_total.toLocaleString()} ÷ ${c.ORUNDUM_PER_HH}`,
+      rate: '',
+      total: hh.from_orundum,
+    },
+  ]
   return (
-    <div>
-      <h2>HH Permit</h2>
-      <table>
-        <tbody>
-          <ResultRow label="Month start"  count={hh.month_firsts}     rate={c.HH_MONTH_FIRST} total={hh.month_first_total} />
-          <ResultRow label="Day 17 bonus" count={hh.day_seventeenths} rate={c.HH_DAY_17}      total={hh.day_17_total} />
-          <TotalRow label="HH from period" value={hh.grand_total} />
-          <tr>
-            <td>Orundum → HH</td>
-            <td>{orundum.grand_total.toLocaleString()} ÷ {c.ORUNDUM_PER_HH}</td>
-            <td>= {hh.from_orundum.toLocaleString()}</td>
-          </tr>
-          <TotalRow label="Total HH Permit" value={hh.total} />
-        </tbody>
-      </table>
-    </div>
-  )
-}
-
-function Results({ result }) {
-  return (
-    <div>
-      <OrundumBlock orundum={result.orundum} constants={result.constants} />
-      <HhBlock orundum={result.orundum} hh={result.hh} constants={result.constants} />
-    </div>
+    <Card>
+      <CardHeader>
+        <CardTitle>HH Permit</CardTitle>
+      </CardHeader>
+      <CardContent>
+        <ResultTable
+          rows={rows}
+          footer={[
+            { label: 'HH from period', value: hh.grand_total },
+            { label: 'Total HH Permit', value: hh.total },
+          ]}
+        />
+      </CardContent>
+    </Card>
   )
 }
 
@@ -97,25 +109,46 @@ function App() {
   }
 
   return (
-    <div className="card">
-      <h1>Arknights Calculator</h1>
+    <div className="min-h-screen flex items-start justify-center pt-16 px-4">
+      <div className="w-full max-w-xl space-y-6">
+        <h1 className="text-3xl font-bold">Arknights Calculator</h1>
 
-      <div>
-        <label>
-          Start date
-          <input type="date" value={dateStart} onChange={e => setDateStart(e.target.value)} />
-        </label>
-        <label>
-          End date
-          <input type="date" value={dateEnd} onChange={e => setDateEnd(e.target.value)} />
-        </label>
+        <Card>
+          <CardContent className="pt-6 space-y-4">
+            <div className="flex gap-4">
+              <div className="flex flex-col gap-1 flex-1">
+                <label className="text-sm text-muted-foreground">Start date</label>
+                <input
+                  type="date"
+                  value={dateStart}
+                  onChange={e => setDateStart(e.target.value)}
+                  className="border border-input rounded-md px-3 py-2 text-sm bg-background"
+                />
+              </div>
+              <div className="flex flex-col gap-1 flex-1">
+                <label className="text-sm text-muted-foreground">End date</label>
+                <input
+                  type="date"
+                  value={dateEnd}
+                  onChange={e => setDateEnd(e.target.value)}
+                  className="border border-input rounded-md px-3 py-2 text-sm bg-background"
+                />
+              </div>
+            </div>
+
+            <Button className="w-full" onClick={handleCalculate}>Calculate</Button>
+
+            {error && <p className="text-destructive text-sm">{error}</p>}
+          </CardContent>
+        </Card>
+
+        {result && (
+          <>
+            <OrundumBlock orundum={result.orundum} constants={result.constants} />
+            <HhBlock orundum={result.orundum} hh={result.hh} constants={result.constants} />
+          </>
+        )}
       </div>
-
-      <button onClick={handleCalculate}>Calculate</button>
-
-      {error && <p style={{ color: 'red' }}>{error}</p>}
-
-      {result && <Results result={result} />}
     </div>
   )
 }
