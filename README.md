@@ -33,3 +33,17 @@ npm run deploy
 ```
 
 This will build the project and deploy it to Firebase Hosting. The CLI will print the URL when done, e.g. `https://<project-id>.web.app`.
+
+## Sync branches with GitHub
+
+Bash:
+```bash
+git fetch -p && git branch -vv | grep ': gone]' | awk '{print $1}' | xargs git branch -d
+```
+
+PowerShell:
+```powershell
+git fetch -p; git branch -vv | Select-String ': gone]' | ForEach-Object { ($_ -split '\s+')[1] } | ForEach-Object { git branch -d $_ }
+```
+
+Replace -d with -D to force removal of unmerged branches.
