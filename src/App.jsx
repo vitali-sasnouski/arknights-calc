@@ -201,6 +201,14 @@ function StockpileSummaryBlock({ result, stockPrime: primeStr, stockOrundum: oru
   )
 }
 
+const STORAGE_KEYS = {
+  dateStart:    'ak_dateStart',
+  dateEnd:      'ak_dateEnd',
+  stockPrime:   'ak_stockPrime',
+  stockOrundum: 'ak_stockOrundum',
+  stockHhPermit:'ak_stockHhPermit',
+}
+
 function App() {
   const today = new Date()
   const nextMonth = new Date(today)
@@ -208,19 +216,24 @@ function App() {
 
   const toInputValue = d => d.toISOString().slice(0, 10)
 
-  const [dateStart, setDateStart] = useState(toInputValue(today))
-  const [dateEnd, setDateEnd]     = useState(toInputValue(nextMonth))
+  const [dateStart, setDateStart] = useState(() => localStorage.getItem(STORAGE_KEYS.dateStart)    ?? toInputValue(today))
+  const [dateEnd, setDateEnd]     = useState(() => localStorage.getItem(STORAGE_KEYS.dateEnd)      ?? toInputValue(nextMonth))
   const [result, setResult]       = useState(null)
   const [error, setError]         = useState('')
 
-  const [stockOpen, setStockOpen]         = useState(false)
-  const [stockPrime, setStockPrime]       = useState('')
-  const [stockOrundum, setStockOrundum]   = useState('')
-  const [stockHhPermit, setStockHhPermit] = useState('')
+  const [stockOpen, setStockOpen]         = useState(() =>
+    !!(localStorage.getItem(STORAGE_KEYS.stockPrime) || localStorage.getItem(STORAGE_KEYS.stockOrundum) || localStorage.getItem(STORAGE_KEYS.stockHhPermit))
+  )
+  const [stockPrime, setStockPrime]       = useState(() => localStorage.getItem(STORAGE_KEYS.stockPrime)    ?? '')
+  const [stockOrundum, setStockOrundum]   = useState(() => localStorage.getItem(STORAGE_KEYS.stockOrundum)  ?? '')
+  const [stockHhPermit, setStockHhPermit] = useState(() => localStorage.getItem(STORAGE_KEYS.stockHhPermit) ?? '')
+
+  const [saved, setSaved] = useState(false)
 
   function handleCalculate() {
     setError('')
     setResult(null)
+    setSaved(false)
 
     if (!dateStart || !dateEnd) {
       setError('Please enter both dates.')
@@ -232,6 +245,15 @@ function App() {
     } catch (e) {
       setError(e.message)
     }
+  }
+
+  function handleSave() {
+    localStorage.setItem(STORAGE_KEYS.dateStart,     dateStart)
+    localStorage.setItem(STORAGE_KEYS.dateEnd,       dateEnd)
+    localStorage.setItem(STORAGE_KEYS.stockPrime,    stockPrime)
+    localStorage.setItem(STORAGE_KEYS.stockOrundum,  stockOrundum)
+    localStorage.setItem(STORAGE_KEYS.stockHhPermit, stockHhPermit)
+    setSaved(true)
   }
 
   return (
@@ -314,6 +336,17 @@ function App() {
             </div>
 
             <Button className="w-full" onClick={handleCalculate}>Calculate</Button>
+
+            {result && (
+              <Button
+                className="w-full"
+                variant={saved ? 'outline' : undefined}
+                onClick={handleSave}
+                style={saved ? undefined : { backgroundColor: '#16a34a', color: '#fff' }}
+              >
+                {saved ? 'Saved!' : 'Save'}
+              </Button>
+            )}
 
             {error && <p className="text-destructive text-sm">{error}</p>}
           </CardContent>
